@@ -1,0 +1,4 @@
+print("Bien");
+print("Venu");
+var test = "test";
+print(test);
