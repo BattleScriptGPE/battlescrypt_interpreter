@@ -1,24 +1,20 @@
 use std::fs::File;
 use std::io::Read;
+use std::slice::Iter;
+use std::sync::Arc;
 
 use log::info;
-use regex::Match;
 
 mod lexer;
+mod parser;
 mod tokens;
+mod ast;
 
+use crate::ast::AST;
 use crate::lexer::lexer;
 
-use crate::tokens::Token;
-use crate::tokens::EOF;
-use crate::tokens::ILLEGAL;
-
-use crate::tokens::TokenInfo;
-use crate::tokens::TOKEN_ITERATOR;
-
-use regex::Regex;
-
-use lazy_static::lazy_static;
+use crate::parser::Parser;
+use crate::tokens::{TokenInfo, NONE};
 
 fn main() {
     info!("Entering RUST interpreter.");
@@ -27,11 +23,11 @@ fn main() {
 
     println!("File Path -> {}", file_path);
 
-    let fileContent: String = read_file_from_path(file_path);
+    let file_content: String = read_file_from_path(file_path);
 
-    println!("Data retrieved -> \n{}", fileContent);
+    println!("Data retrieved -> \n{}", file_content);
 
-    interpreter(fileContent);
+    interpreter(file_content);
 }
 
 fn read_file_from_path(path: String) -> String {
@@ -46,7 +42,24 @@ fn read_file_from_path(path: String) -> String {
 }
 
 fn interpreter(file_content: String) {
-    let lexerTokens: Vec<TokenInfo> = lexer(file_content);
+    let lexer_tokens: Vec<TokenInfo> = lexer(file_content);
 
-    println!("TOKENS FINAUX -> {:?}", lexerTokens);
+    println!("TOKENS FINAUX -> {:#?}", lexer_tokens);
+
+    let lexer_tokens_iterator: Iter<TokenInfo> = lexer_tokens.iter();
+
+    let current_token: TokenInfo = TokenInfo::new(NONE.to_string(), NONE.to_string());
+    let next_token: TokenInfo = TokenInfo::new(NONE.to_string(), NONE.to_string());
+
+    let mut ast_result_list: Vec<Arc<dyn AST>> = Vec::new();
+
+    println!("ast_result_list -> {:#?}:?", ast_result_list);
+
+    let mut parser = Parser::new(lexer_tokens_iterator, current_token, next_token, ast_result_list);
+
+    parser.run_parsing();
+
+    ast_result_list = parser.get_ast();
+
+    println!("ast_result_list -> {:#?}:?", ast_result_list);
 }

@@ -3,7 +3,7 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 named_tuple!(
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct TokenInfo {
         // 'a because we don't know lifetime for vars
         name: String,
@@ -52,4 +52,8 @@ pub static TOKEN_ITERATOR: [Token; 5] = [
 ];
 
 pub const EOF: &str = "EOF";
+pub const EOF_RAW: &str = "\x00";
+
 pub const ILLEGAL: &str = "ILLEGAL";
+
+pub const NONE: &str = "NONE";

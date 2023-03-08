@@ -4,7 +4,7 @@ use crate::tokens::{TokenInfo, EOF, ILLEGAL, TOKEN_ITERATOR};
 
 pub fn lexer(file_content: String) -> Vec<TokenInfo> {
     let mut position = 0;
-    let mut detectedTokenInfos: Vec<TokenInfo> = Vec::new();
+    let mut detected_token_infos: Vec<TokenInfo> = Vec::new();
 
     while position < file_content.len() {
         println!("position -> {}", position);
@@ -30,17 +30,17 @@ pub fn lexer(file_content: String) -> Vec<TokenInfo> {
                     );
 
                     found = true;
-                    detectedTokenInfos.push(TokenInfo::new(
+                    detected_token_infos.push(TokenInfo::new(
                         token_id.get_name().to_string(),
                         mat.as_str().to_string(),
                     ));
                     println!(
                         "STRUCT INFOS -> {}",
-                        detectedTokenInfos[detectedTokenInfos.len() - 1].0
+                        detected_token_infos[detected_token_infos.len() - 1].0
                     );
                     println!(
                         "STRUCT INFOS -> {}",
-                        detectedTokenInfos[detectedTokenInfos.len() - 1].1
+                        detected_token_infos[detected_token_infos.len() - 1].1
                     );
                     break;
                 }
@@ -48,18 +48,18 @@ pub fn lexer(file_content: String) -> Vec<TokenInfo> {
         }
 
         if !found {
-            detectedTokenInfos.push(TokenInfo::new(
+            detected_token_infos.push(TokenInfo::new(
                 ILLEGAL.to_string(),
                 file_content.chars().nth(position).unwrap().to_string(),
             ));
             position += 1;
         }
 
-        println!("{:?}", detectedTokenInfos);
+        println!("{:?}", detected_token_infos);
     }
 
-    detectedTokenInfos.push(TokenInfo::new(EOF.to_string(), "\x00".to_string()));
-    detectedTokenInfos.push(TokenInfo::new(EOF.to_string(), "\x00".to_string()));
+    detected_token_infos.push(TokenInfo::new(EOF.to_string(), "\x00".to_string()));
+    detected_token_infos.push(TokenInfo::new(EOF.to_string(), "\x00".to_string()));
 
-    return detectedTokenInfos;
+    return detected_token_infos;
 }
