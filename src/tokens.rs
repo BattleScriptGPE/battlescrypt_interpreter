@@ -2,6 +2,11 @@ use named_tuple::named_tuple;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+pub const EOF: &str = "EOF";
+pub const EOF_RAW: &str = "\x00";
+pub const ILLEGAL: &str = "ILLEGAL";
+pub const NONE: &str = "NONE";
+
 named_tuple!(
     #[derive(Debug, Clone)]
     pub struct TokenInfo {
@@ -174,6 +179,8 @@ impl Token {
             Token::ID => "ID",
         }
     }
+
+    
 }
 
 // TODO !!! Increments Token number as we add values !!!
@@ -220,9 +227,41 @@ pub static TOKEN_ITERATOR: [Token; 40] = [
     Token::ID,
 ];
 
-pub const EOF: &str = "EOF";
-pub const EOF_RAW: &str = "\x00";
+#[derive(PartialEq, PartialOrd)]
+pub enum Priority {
+    LOWEST,
+    LOWER,
+    LOW,
+    HIGH,
+    HIGHER,
+    HIGHEST
+}
 
-pub const ILLEGAL: &str = "ILLEGAL";
+impl Priority {
+    pub fn get_name(&self) -> &'static str {
+        match self {
+            Priority::LOWEST => "LOWEST",
+            Priority::LOWER => "LOWER",
+            Priority::LOW => "LOW",
+            Priority::HIGH => "HIGH",
+            Priority::HIGHER => "HIGHER",
+            Priority::HIGHEST => "HIGHEST"
+        }
+    }
+}
 
-pub const NONE: &str = "NONE";
+
+pub fn get_precedence(token: &str) -> Priority {
+    match token {
+        "EQUAL" => Priority::LOWER,
+        "NOTEQ" => Priority::LOWER,
+        "INFERIOR" => Priority::LOW,
+        "SUPERIOR" => Priority::LOW,
+        "PLUS" => Priority::HIGH,
+        "MINUS" => Priority::HIGH,
+        "MUL" => Priority::HIGHER,
+        "DIV" => Priority::HIGHER,
+        "LPAREN" => Priority::HIGHEST,
+        _ => Priority::LOWEST
+    }
+}

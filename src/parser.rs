@@ -3,8 +3,8 @@ use std::{slice::Iter, sync::Arc};
 use lazy_static::__Deref;
 
 use crate::{
-    ast::{EOFStatement, PrintStatement, VarStatement, AST},
-    tokens::{Token, TokenInfo, EOF, EOF_RAW, ILLEGAL},
+    ast::{EOFStatement, PrintStatement, VarStatement, AST, LiteralExpression, IdentifierExpression, PrefixExpression, InfixExpression},
+    tokens::{Token, TokenInfo, EOF, EOF_RAW, ILLEGAL, Priority, get_precedence},
 };
 
 pub struct Parser<'a> {
@@ -121,6 +121,111 @@ impl Parser<'_> {
         }
         return None;
     }
+
+
+
+    fn parse_expression(&mut self, precedence: Priority) -> Arc<dyn AST> {
+        let mut expression = self.parse_datatypes();
+
+        if expression.is_none() {
+            expression = self.parse_identifier();
+        }
+
+        if expression.is_none() {
+            expression = self.parse_unary();
+        }
+
+        if expression.is_none() {
+            expression = self.parse_group();
+        }
+
+        if expression.is_none() {
+            panic!("Parsing expression failed");
+        }
+
+        while !self.is_valid_token(self.next_token.clone(), Token::SEMI) && precedence <= get_precedence(&self.next_token.0) {
+            let new_expression = self.parse_infix_expression();
+            if new_expression.is_some() {
+                expression = new_expression;
+            } else {
+                break;
+            }
+        }
+        return expression.unwrap();
+    }
+
+
+    fn parse_datatypes(&mut self) -> Option<Arc<dyn AST>> {
+        let data_types = [Token::INTEGER.get_name(), Token::FLOAT.get_name(), Token::TRUE.get_name(), Token::FALSE.get_name(), Token::STRING.get_name()];
+        if data_types.contains(&&*self.current_token.0) {
+            return Some(Arc::new(LiteralExpression));
+        }
+        return None;
+    }
+
+    fn parse_identifier(&self) -> Option<Arc<dyn AST>> {
+        if self.is_valid_token(self.current_token.clone(), Token::ID) {
+            return Some(Arc::new(IdentifierExpression));
+        }
+        return None;
+    }
+
+    fn parse_unary(&mut self)-> Option<Arc<dyn AST>> {
+        let unary_types = [Token::NOT.get_name(), Token::MINUS.get_name()];
+
+        if unary_types.contains(&&*self.current_token.0) {
+            let operator = self.current_token.1.clone();
+            //let precedence = self.current_token
+            // TODO PRECENDENCE ??
+            self.update();
+            let right = self.parse_expression(Priority::HIGHER);
+            // TODO ASSIGNATION PARAMS
+            
+            return Some(Arc::new(PrefixExpression));
+        } else if self.is_valid_token(self.current_token.clone()
+            , Token::LPAREN) {
+                self.update();
+                let expression = self.parse_expression(Priority::LOWEST);
+                self.is_next(Token::RPAREN);
+                return Some(expression);
+            }
+            return None;
+    }
+
+    fn parse_group(&mut self) -> Option<Arc<dyn AST>> {
+        if self.is_valid_token(self.current_token.clone(), Token::LPAREN) {
+            self.update();
+            let expression = self.parse_expression(Priority::LOWEST);
+            self.is_next(Token::RPAREN);
+            return Some(expression);
+        }
+        return None;
+    }
+
+    fn parse_infix_expression(&mut self) -> Option<Arc<dyn AST>> {
+        let infix_list = [
+            // arithmetic operator
+            Token::PLUS.get_name(), Token::MINUS.get_name(), Token::DIV.get_name(),
+            Token::MUL.get_name(), Token::MODULO.get_name(), Token::XOR.get_name(),
+            // comparison operator
+            Token::EQUAL.get_name(), Token::SUPERIOR.get_name(), Token::SUPERIOREQ.get_name(),
+            Token::INFERIOR.get_name(), Token::INFERIOREQ.get_name(), Token::NOTEQ.get_name(),
+            // logical operator
+            Token::AND.get_name(), Token::OR.get_name()
+        ];
+
+        if infix_list.contains(&&*self.next_token.0) {
+            self.update();
+            let operator = self.current_token.1.clone();
+            let precedence = get_precedence(&self.current_token.0);
+            self.update();
+            let right = self.parse_expression(precedence);
+            // TODO PARAM BINDING AST
+            return Some(Arc::new(InfixExpression));
+        }
+        return None;
+    }
+
 
     fn is_valid_token(&self, source_token: TokenInfo, comparable_token: Token) -> bool {
         if source_token.0 == comparable_token.get_name() {
