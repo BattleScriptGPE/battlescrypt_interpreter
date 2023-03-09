@@ -2,50 +2,51 @@ use std::{slice::Iter, sync::Arc};
 
 use lazy_static::__Deref;
 
-use crate::{tokens::{Token, TokenInfo, EOF, EOF_RAW, ILLEGAL}, ast::{AST, PrintStatement}};
+use crate::{
+    ast::{EOFStatement, PrintStatement, VarStatement, AST},
+    tokens::{Token, TokenInfo, EOF, EOF_RAW, ILLEGAL},
+};
 
 pub struct Parser<'a> {
     // On set une période de vie 'a à la struct
     lexer_tokens: Iter<'a, TokenInfo>,
     current_token: TokenInfo, // Les variables avec 'a dureront aussi longtemps que la struct
     next_token: TokenInfo,
-    ast_list: Vec<Arc<dyn AST>>
+    ast_list: Vec<Arc<dyn AST>>,
 }
 
-impl Parser<'_>  {
-    /* pub fn new(init_lexer_tokens: Vec<TokenInfo>) -> Self {
-        let lexer_tokens_from_parent: Vec<TokenInfo> = init_lexer_tokens.clone();
-        let temp_token_info = TokenInfo::new("None".to_string(), "None".to_string());
-
-        Parser {
-            lexer_tokens: lexer_tokens_from_parent.iter(),
-            current_token: temp_token_info,
-            next_token: temp_token_info,
-        }
-    } */
-
+impl Parser<'_> {
     pub fn new<'a>(
         lexer_tokens: Iter<'a, TokenInfo>,
         current_token: TokenInfo,
         next_token: TokenInfo,
-        ast_list: Vec<Arc<dyn AST>>
-
+        ast_list: Vec<Arc<dyn AST>>,
     ) -> Parser<'a> {
         Parser {
             lexer_tokens: lexer_tokens,
             current_token: current_token,
             next_token: next_token,
-            ast_list: ast_list
+            ast_list: ast_list,
         }
     }
 
-    pub fn get_ast(&self)-> Vec<Arc<dyn AST>> {
+    pub fn get_ast(&self) -> Vec<Arc<dyn AST>> {
         return self.ast_list.clone();
     }
 
     pub fn run_parsing(&mut self) {
-        self.ast_list.push(Arc::new(PrintStatement));
-        //TODO self.update();
+        // As everything is at None, we init first to next() values
+        self.update();
+
+        while self.current_token.0 != EOF {
+            self.update();
+            println!("not EOF -> {:?}, {:?}", self.current_token, self.next_token);
+            if let statement = self.parse_statement() {
+                // TODO
+                self.ast_list.push(statement);
+            }
+        }
+        self.ast_list.push(Arc::new(EOFStatement));
     }
 
     fn update(&mut self) {
@@ -54,34 +55,87 @@ impl Parser<'_>  {
             self.current_token, self.next_token
         );
         self.current_token = self.next_token.clone();
-        /* println!("curr_tok -> {:?}", self.current_token);
-        println!("next_tok -> {:?}", self.next_token); */
         self.next_token = self.next();
-
-        /* let iterate_through_next = self.lexer_tokens.next();
-        if iterate_through_next.is_some() {
-            self.next_token = *iterate_through_next.unwrap();
-            println!("UPDATE UNWRAPED -> {:?}", self.next_token);
-        } */
+        println!(
+            "curr_tok2 -> {:?} ; new_token2 -> {:?}",
+            self.current_token, self.next_token
+        );
     }
 
-    fn next(&self) -> TokenInfo {
-        //let iterate_through_next = self.lexer_tokens.next();
-
-        while self.current_token.0 != EOF {
-            if let statement = self.parse_statement() {
-                // TODO
-                return statement;
-            }
+    fn next(&mut self) -> TokenInfo {
+        let next_token = self.lexer_tokens.next();
+        if next_token.is_some() {
+            return next_token.unwrap().clone();
         }
         return TokenInfo::new(EOF.to_string(), EOF_RAW.to_string());
     }
 
-    fn parse_statement(&self) -> TokenInfo {
+    fn parse_statement(&mut self) -> Arc<dyn AST> {
         if self.current_token.0 == ILLEGAL {
-            println!("TODO RAISE ERROR");
+            panic!("ILLEGAL TOKEN");
         }
+
         println!("TODO parse_statements");
-        return TokenInfo::new("PARSE".to_string(), "STATEMENT".to_string()); // TODO
+
+        let parse_var_statement = self.parse_var_statement();
+
+        if parse_var_statement.is_some() {
+            return parse_var_statement.unwrap();
+        }
+
+        // TODO Parse assign statement
+
+        // TODO Move Statement
+
+        let print_statement = self.print_statement();
+
+        if print_statement.is_some() {
+            return print_statement.unwrap();
+        }
+
+        // TODO Parse Expression Statement
+
+        return Arc::new(EOFStatement); // TODO
+    }
+
+    fn parse_var_statement(&self) -> Option<Arc<dyn AST>> {
+        if self.is_valid_token(self.current_token.clone(), Token::VAR) {
+            // TODO TRAITEMENT
+            return Some(Arc::new(VarStatement));
+        }
+        return None;
+    }
+
+    fn print_statement(&mut self) -> Option<Arc<dyn AST>> {
+        if self.is_valid_token(self.current_token.clone(), Token::PRINT) {
+            // TODO TRAITEMENT
+            let state = self.current_token.1.clone();
+            self.is_next(Token::LPAREN);
+            self.update();
+            let value = "MA VALUE TODO";
+            self.is_next(Token::RPAREN);
+            self.is_next(Token::SEMI);
+            self.update();
+
+            return Some(Arc::new(PrintStatement));
+        }
+        return None;
+    }
+
+    fn is_valid_token(&self, source_token: TokenInfo, comparable_token: Token) -> bool {
+        if source_token.0 == comparable_token.get_name() {
+            return true;
+        }
+        return false;
+    }
+
+    fn is_next(&mut self, comparable_token: Token) {
+        if !self.is_valid_token(self.next_token.clone(), comparable_token) {
+            panic!(
+                "Got {:?} instead of {:?}",
+                comparable_token, self.next_token
+            );
+        }
+        self.update();
     }
 }

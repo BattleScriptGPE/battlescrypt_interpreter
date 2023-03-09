@@ -7,6 +7,12 @@ pub trait AST: std::fmt::Debug {
 #[derive(Debug, Clone, Copy)]
 pub struct PrintStatement;
 
+#[derive(Debug, Clone, Copy)]
+pub struct EOFStatement;
+
+#[derive(Debug, Clone, Copy)]
+pub struct VarStatement;
+
 impl AST for PrintStatement {
     fn new(&self) {
         println!("new Print");
@@ -18,6 +24,34 @@ impl AST for PrintStatement {
 
     fn evaluate(&self) {
         println!("evaluate Print");
+    }
+}
+
+impl AST for EOFStatement {
+    fn new(&self) {
+        println!("new EOF");
+    }
+
+    fn to_string(&self) {
+        println!("to_string EOF");
+    }
+
+    fn evaluate(&self) {
+        println!("evaluate EOF");
+    }
+}
+
+impl AST for VarStatement {
+    fn new(&self) {
+        println!("new VAR");
+    }
+
+    fn to_string(&self) {
+        println!("to_string VAR");
+    }
+
+    fn evaluate(&self) {
+        println!("evaluate VAR");
     }
 }
 

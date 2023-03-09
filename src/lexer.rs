@@ -12,7 +12,7 @@ pub fn lexer(file_content: String) -> Vec<TokenInfo> {
         let mut found = false;
 
         for token_id in &TOKEN_ITERATOR {
-            let re = Regex::new(token_id.to_string()).unwrap();
+            let re = Regex::new(token_id.get_value()).unwrap();
 
             if re.is_match(&file_content) {
                 let mat = re.find(&file_content).unwrap();
@@ -23,7 +23,7 @@ pub fn lexer(file_content: String) -> Vec<TokenInfo> {
                     position = match_end;
                     println!(
                         "Found is_match VALID, pattern -> {}, start -> {}; end -> {}; value -> {}",
-                        token_id.to_string(),
+                        token_id.get_value(),
                         match_start,
                         match_end,
                         mat.as_str()

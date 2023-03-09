@@ -5,10 +5,10 @@ use std::sync::Arc;
 
 use log::info;
 
+mod ast;
 mod lexer;
 mod parser;
 mod tokens;
-mod ast;
 
 use crate::ast::AST;
 use crate::lexer::lexer;
@@ -44,7 +44,7 @@ fn read_file_from_path(path: String) -> String {
 fn interpreter(file_content: String) {
     let lexer_tokens: Vec<TokenInfo> = lexer(file_content);
 
-    println!("TOKENS FINAUX -> {:#?}", lexer_tokens);
+    println!("TOKENS FINAUX -> {:?}", lexer_tokens);
 
     let lexer_tokens_iterator: Iter<TokenInfo> = lexer_tokens.iter();
 
@@ -53,13 +53,18 @@ fn interpreter(file_content: String) {
 
     let mut ast_result_list: Vec<Arc<dyn AST>> = Vec::new();
 
-    println!("ast_result_list -> {:#?}:?", ast_result_list);
+    println!("ast_result_list -> {:?}:?", ast_result_list);
 
-    let mut parser = Parser::new(lexer_tokens_iterator, current_token, next_token, ast_result_list);
+    let mut parser = Parser::new(
+        lexer_tokens_iterator,
+        current_token,
+        next_token,
+        ast_result_list,
+    );
 
     parser.run_parsing();
 
     ast_result_list = parser.get_ast();
 
-    println!("ast_result_list -> {:#?}:?", ast_result_list);
+    println!("ast_result_list -> {:?}:?", ast_result_list);
 }
