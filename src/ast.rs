@@ -25,6 +25,9 @@ pub struct EOFStatement;
 #[derive(Debug, Clone, Copy)]
 pub struct VarStatement;
 
+#[derive(Debug, Clone, Copy)]
+pub struct AssignStatement;
+
 impl AST for PrintStatement {
     fn new(&self) {
         println!("new Print");
@@ -74,6 +77,24 @@ impl AST for VarStatement {
 
     fn evaluate(&self) {
         println!("evaluate VAR");
+    }
+
+    fn get_ast_version(&self) -> ASTVersion {
+        return ASTVersion::STATEMENT;
+    }
+}
+
+impl AST for AssignStatement {
+    fn new(&self) {
+        println!("new ASSIGN");
+    }
+
+    fn to_string(&self) {
+        println!("to_string ASSIGN");
+    }
+
+    fn evaluate(&self) {
+        println!("evaluate ASSIGN");
     }
 
     fn get_ast_version(&self) -> ASTVersion {

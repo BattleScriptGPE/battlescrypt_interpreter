@@ -5,7 +5,7 @@ use lazy_static::__Deref;
 use crate::{
     ast::{
         EOFStatement, IdentifierExpression, InfixExpression, LiteralExpression, PrefixExpression,
-        PrintStatement, VarStatement, AST,
+        PrintStatement, VarStatement, AST, AssignStatement,
     },
     tokens::{get_precedence, Priority, Token, TokenInfo, EOF, EOF_RAW, ILLEGAL},
 };
@@ -43,8 +43,11 @@ impl Parser<'_> {
 
         while self.current_token.0 != EOF {
             self.update();
-            
-            println!("Managing token -> {:?}, {:?}", self.current_token, self.next_token);
+
+            println!(
+                "Managing token -> {:?}, {:?}",
+                self.current_token, self.next_token
+            );
 
             let statement = self.parse_statement();
 
@@ -61,14 +64,14 @@ impl Parser<'_> {
             "curr_tok -> {:?} ; new_token -> {:?}",
             self.current_token, self.next_token
         ); */
-        
+
         self.current_token = self.next_token.clone();
         self.next_token = self.next();
         println!("update -> {:?}, {:?}", self.current_token, self.next_token);
         /* println!(
             "curr_tok2 -> {:?} ; new_token2 -> {:?}",
             self.current_token, self.next_token
-        ); */
+        );*/
     }
 
     fn next(&mut self) -> TokenInfo {
@@ -93,7 +96,12 @@ impl Parser<'_> {
             return statement;
         }
 
-        // TODO Parse assign statement
+        statement = self.parse_assign_statement();
+
+        if statement.is_some() {
+            println!("Detected parse_assign_statement");
+            return statement;
+        }
 
         // TODO Move Statement
 
@@ -106,6 +114,19 @@ impl Parser<'_> {
 
         // TODO Parse Expression Statement
 
+        return None;
+    }
+
+    fn parse_assign_statement(&mut self) -> Option<Arc<dyn AST>> {
+        if self.is_valid_token(self.current_token.clone(), Token::ID) {
+            let variable = self.current_token.1.clone();
+            self.is_next(Token::ASSIGN);
+            self.update();
+            let value = self.parse_expression(Priority::LOWEST);
+            self.is_next(Token::SEMI);
+            //self.update();
+            return Some(Arc::new(AssignStatement))
+        }
         return None;
     }
 
