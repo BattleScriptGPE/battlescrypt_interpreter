@@ -1,4 +1,4 @@
-use std::path::Prefix;
+use std::{path::Prefix, sync::Arc};
 
 pub trait AST: std::fmt::Debug {
     fn new(&self);
@@ -22,8 +22,11 @@ pub struct PrintStatement;
 #[derive(Debug, Clone, Copy)]
 pub struct EOFStatement;
 
-#[derive(Debug, Clone, Copy)]
-pub struct VarStatement;
+#[derive(Debug, Clone)]
+pub struct VarStatement {
+    pub variable: String,
+    pub value: Option<Arc<dyn AST>>
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct AssignStatement;

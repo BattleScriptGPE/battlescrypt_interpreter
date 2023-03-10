@@ -40,9 +40,9 @@ impl Parser<'_> {
     pub fn run_parsing(&mut self) {
         // As everything is at None, we init first to next() values
         self.update();
+        self.update();
 
         while self.current_token.0 != EOF {
-            self.update();
 
             println!(
                 "Managing token -> {:?}, {:?}",
@@ -67,7 +67,7 @@ impl Parser<'_> {
 
         self.current_token = self.next_token.clone();
         self.next_token = self.next();
-        println!("update -> {:?}, {:?}", self.current_token, self.next_token);
+        //println!("update -> {:?}, {:?}", self.current_token, self.next_token);
         /* println!(
             "curr_tok2 -> {:?} ; new_token2 -> {:?}",
             self.current_token, self.next_token
@@ -106,15 +106,31 @@ impl Parser<'_> {
         // TODO Move Statement
 
         statement = self.print_statement();
+        
 
         if statement.is_some() {
             println!("Detected print_statement");
             return statement;
         }
 
-        // TODO Parse Expression Statement
+        statement = self.parse_expression_statement();
+
+        if statement.is_some() {
+            println!("Detected parse_expression_statement");
+            return statement;
+        }
 
         return None;
+    }
+
+    fn parse_expression_statement(&mut self) -> Option<Arc<dyn AST>> {
+        let expression = self.parse_expression(Priority::LOWEST);
+        /* if self.is_valid_token(self.next_token.clone(), Token::SEMI) {
+            println!("JUL2");
+            self.update();
+            self.update();
+        } */
+        return expression;
     }
 
     fn parse_assign_statement(&mut self) -> Option<Arc<dyn AST>> {
@@ -124,16 +140,25 @@ impl Parser<'_> {
             self.update();
             let value = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::SEMI);
-            //self.update();
+            self.update();
             return Some(Arc::new(AssignStatement))
         }
         return None;
     }
 
-    fn parse_var_statement(&self) -> Option<Arc<dyn AST>> {
+    fn parse_var_statement(&mut self) -> Option<Arc<dyn AST>> {
         if self.is_valid_token(self.current_token.clone(), Token::VAR) {
-            // TODO TRAITEMENT
-            return Some(Arc::new(VarStatement));
+
+            self.is_next(Token::ID);
+
+            let variable = self.current_token.1.clone();
+
+            self.is_next(Token::ASSIGN);
+            self.update();
+            let value = self.parse_expression(Priority::LOWEST);
+            self.is_next(Token::SEMI);
+            self.update();
+            return Some(Arc::new(VarStatement {variable: variable, value: value}));
         }
         return None;
     }
@@ -148,14 +173,14 @@ impl Parser<'_> {
             let value = "MA VALUE TODO";
             self.is_next(Token::RPAREN);
             self.is_next(Token::SEMI);
-            //self.update();
+            self.update();
 
             return Some(Arc::new(PrintStatement));
         }
         return None;
     }
 
-    fn parse_expression(&mut self, precedence: Priority) -> Arc<dyn AST> {
+    fn parse_expression(&mut self, precedence: Priority) -> Option<Arc<dyn AST>> {
         let mut expression = self.parse_datatypes();
 
         if expression.is_none() {
@@ -184,7 +209,7 @@ impl Parser<'_> {
                 break;
             }
         }
-        return expression.unwrap();
+        return expression;
     }
 
     fn parse_datatypes(&mut self) -> Option<Arc<dyn AST>> {
@@ -224,7 +249,7 @@ impl Parser<'_> {
             self.update();
             let expression = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::RPAREN);
-            return Some(expression);
+            return expression;
         }
         return None;
     }
@@ -234,7 +259,7 @@ impl Parser<'_> {
             self.update();
             let expression = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::RPAREN);
-            return Some(expression);
+            return  expression;
         }
         return None;
     }
