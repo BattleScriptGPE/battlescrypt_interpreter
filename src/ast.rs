@@ -16,8 +16,11 @@ pub enum ASTVersion {
 
 pub trait Expression: AST {} */
 
-#[derive(Debug, Clone, Copy)]
-pub struct PrintStatement;
+#[derive(Debug, Clone)]
+pub struct PrintStatement {
+    pub state: String,
+    pub value: Option<Arc<dyn AST>>
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct EOFStatement;
@@ -28,8 +31,11 @@ pub struct VarStatement {
     pub value: Option<Arc<dyn AST>>
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct AssignStatement;
+#[derive(Debug, Clone)]
+pub struct AssignStatement {
+    pub variable: String,
+    pub value: Option<Arc<dyn AST>>
+}
 
 impl AST for PrintStatement {
     fn new(&self) {
@@ -105,17 +111,29 @@ impl AST for AssignStatement {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct LiteralExpression;
+#[derive(Debug, Clone)]
+pub struct LiteralExpression {
+    pub type_literal: String,
+    pub value: String
+}
 
-#[derive(Debug, Clone, Copy)]
-pub struct IdentifierExpression;
+#[derive(Debug, Clone)]
+pub struct IdentifierExpression {
+    pub value: String
+}
 
-#[derive(Debug, Clone, Copy)]
-pub struct PrefixExpression;
+#[derive(Debug, Clone)]
+pub struct PrefixExpression {
+    pub variable: String,
+    pub value: Option<Arc<dyn AST>>
+}
 
-#[derive(Debug, Clone, Copy)]
-pub struct InfixExpression;
+#[derive(Debug, Clone)]
+pub struct InfixExpression {
+    pub left: Option<Arc<dyn AST>>,
+    pub right: Option<Arc<dyn AST>>,
+    pub operator: String
+}
 
 impl AST for LiteralExpression {
     fn new(&self) {
@@ -188,11 +206,3 @@ impl AST for InfixExpression {
         return ASTVersion::EXPRESSION;
     }
 }
-
-/* struct Cat;
-
-impl Animal for Cat {
-    fn tell(&self) { println!("Meow"); }
-    fn pet(&mut self) { println!("purr");
-    fn feed(&mut self, food: Food) { println!("lick"); }
-} */

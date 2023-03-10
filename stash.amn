@@ -1,2 +1,2 @@
-var oui = 3 + 3;
+var oui = (3 + 3 * 3);
 print(oui);

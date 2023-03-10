@@ -141,7 +141,7 @@ impl Parser<'_> {
             let value = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::SEMI);
             self.update();
-            return Some(Arc::new(AssignStatement))
+            return Some(Arc::new(AssignStatement {variable: variable, value: value}));
         }
         return None;
     }
@@ -170,12 +170,12 @@ impl Parser<'_> {
             let state = self.current_token.1.clone();
             self.is_next(Token::LPAREN);
             self.update();
-            let value = "MA VALUE TODO";
+            let value = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::RPAREN);
             self.is_next(Token::SEMI);
             self.update();
 
-            return Some(Arc::new(PrintStatement));
+            return Some(Arc::new(PrintStatement {state: state, value: value}));
         }
         return None;
     }
@@ -202,7 +202,7 @@ impl Parser<'_> {
         while !self.is_valid_token(self.next_token.clone(), Token::SEMI)
             && precedence <= get_precedence(&self.next_token.0)
         {
-            let new_expression = self.parse_infix_expression();
+            let new_expression = self.parse_infix_expression(expression.clone());
             if new_expression.is_some() {
                 expression = new_expression;
             } else {
@@ -221,14 +221,14 @@ impl Parser<'_> {
             Token::STRING.get_name(),
         ];
         if data_types.contains(&&*self.current_token.0) {
-            return Some(Arc::new(LiteralExpression));
+            return Some(Arc::new(LiteralExpression {type_literal: self.current_token.0.clone(), value: self.current_token.1.clone()}));
         }
         return None;
     }
 
     fn parse_identifier(&self) -> Option<Arc<dyn AST>> {
         if self.is_valid_token(self.current_token.clone(), Token::ID) {
-            return Some(Arc::new(IdentifierExpression));
+            return Some(Arc::new(IdentifierExpression {value: self.current_token.1.clone()}));
         }
         return None;
     }
@@ -244,7 +244,7 @@ impl Parser<'_> {
             let right = self.parse_expression(Priority::HIGHER);
             // TODO ASSIGNATION PARAMS
 
-            return Some(Arc::new(PrefixExpression));
+            return Some(Arc::new(PrefixExpression {variable: operator, value: right}));
         } else if self.is_valid_token(self.current_token.clone(), Token::LPAREN) {
             self.update();
             let expression = self.parse_expression(Priority::LOWEST);
@@ -264,7 +264,7 @@ impl Parser<'_> {
         return None;
     }
 
-    fn parse_infix_expression(&mut self) -> Option<Arc<dyn AST>> {
+    fn parse_infix_expression(&mut self, left: Option<Arc<dyn AST>>) -> Option<Arc<dyn AST>> {
         let infix_list = [
             // arithmetic operator
             Token::PLUS.get_name(),
@@ -292,7 +292,7 @@ impl Parser<'_> {
             self.update();
             let right = self.parse_expression(precedence);
             // TODO PARAM BINDING AST
-            return Some(Arc::new(InfixExpression));
+            return Some(Arc::new(InfixExpression {left: left, right: right, operator: operator}));
         }
         return None;
     }
