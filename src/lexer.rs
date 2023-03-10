@@ -1,7 +1,7 @@
 use regex::Regex;
 use substring::Substring;
 
-use crate::tokens::{TokenInfo, EOF, ILLEGAL, TOKEN_ITERATOR};
+use crate::tokens::{TokenInfo, EOF, ILLEGAL, TOKEN_ITERATOR, Token};
 
 
 pub fn lexer(file_content: String) -> Vec<TokenInfo> {
@@ -30,6 +30,7 @@ pub fn lexer(file_content: String) -> Vec<TokenInfo> {
 
                 if match_start == position {
                     position = match_end;
+                    
                     println!(
                         "Found is_match VALID, pattern -> {}, start -> {}; end -> {}; value -> {}",
                         token_id.get_value(),
@@ -39,6 +40,11 @@ pub fn lexer(file_content: String) -> Vec<TokenInfo> {
                     );
 
                     found = true;
+
+                    if token_id.get_name() == Token::WHITESPACE.get_name() || token_id.get_name() == Token::COMMENT.get_name() {
+                        break;
+                    }
+                    
                     detected_token_infos.push(TokenInfo::new(
                         token_id.get_name().to_string(),
                         mat.as_str().to_string(),

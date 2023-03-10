@@ -44,11 +44,12 @@ impl Parser<'_> {
         while self.current_token.0 != EOF {
             self.update();
             
-            println!("not EOF -> {:?}, {:?}", self.current_token, self.next_token);
+            println!("Managing token -> {:?}, {:?}", self.current_token, self.next_token);
 
             let statement = self.parse_statement();
 
-            if (statement.is_some()) {
+            if statement.is_some() {
+                println!("push");
                 self.ast_list.push(statement.unwrap());
             }
         }
@@ -56,12 +57,14 @@ impl Parser<'_> {
     }
 
     fn update(&mut self) {
-        println!(
+        /* println!(
             "curr_tok -> {:?} ; new_token -> {:?}",
             self.current_token, self.next_token
-        );
+        ); */
+        
         self.current_token = self.next_token.clone();
         self.next_token = self.next();
+        println!("update -> {:?}, {:?}", self.current_token, self.next_token);
         /* println!(
             "curr_tok2 -> {:?} ; new_token2 -> {:?}",
             self.current_token, self.next_token
@@ -86,6 +89,7 @@ impl Parser<'_> {
         let mut statement = self.parse_var_statement();
 
         if statement.is_some() {
+            println!("Detected var_statement");
             return statement;
         }
 
@@ -96,6 +100,7 @@ impl Parser<'_> {
         statement = self.print_statement();
 
         if statement.is_some() {
+            println!("Detected print_statement");
             return statement;
         }
 
@@ -114,6 +119,7 @@ impl Parser<'_> {
 
     fn print_statement(&mut self) -> Option<Arc<dyn AST>> {
         if self.is_valid_token(self.current_token.clone(), Token::PRINT) {
+            println!("JUL1");
             // TODO TRAITEMENT
             let state = self.current_token.1.clone();
             self.is_next(Token::LPAREN);
@@ -121,7 +127,7 @@ impl Parser<'_> {
             let value = "MA VALUE TODO";
             self.is_next(Token::RPAREN);
             self.is_next(Token::SEMI);
-            self.update();
+            //self.update();
 
             return Some(Arc::new(PrintStatement));
         }

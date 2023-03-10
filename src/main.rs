@@ -63,6 +63,8 @@ fn interpreter(file_content: String) {
     );
 
     parser.run_parsing();
+    
+    println!("PARSING FINI");
 
     ast_result_list = parser.get_ast();
 

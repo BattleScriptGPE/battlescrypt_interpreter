@@ -106,7 +106,7 @@ impl Token {
 
             Token::ASSIGN => r#"="#,
 
-            Token::STRING => r#"(".*")|('.*')"#,
+            Token::STRING => r#"("[^"]*")|('[^']*')"#, // Old regex : (".*")|('.*')
             Token::FLOAT => r#"\d+\.\d+"#,
             Token::INTEGER => r#"\d+"#,
 
