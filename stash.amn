@@ -1,2 +1,1 @@
-var oui = (3 + 3 * 3);
-print(oui);
+print("StashInput\n");

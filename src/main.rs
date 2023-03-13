@@ -69,4 +69,8 @@ fn interpreter(file_content: String) {
     ast_result_list = parser.get_ast();
 
     println!("ast_result_list -> {:#?}:?", ast_result_list);
+
+    for branch in ast_result_list {
+        branch.evaluate();
+    }
 }
