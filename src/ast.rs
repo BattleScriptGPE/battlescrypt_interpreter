@@ -26,6 +26,11 @@ pub struct PrintStatement {
     pub value: Option<Arc<dyn AST>>,
 }
 
+#[derive(Debug, Clone)]
+pub struct MoveStatement {
+    pub state: String
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct EOFStatement;
 
@@ -43,15 +48,15 @@ pub struct AssignStatement {
 
 impl AST for PrintStatement {
     fn new(&self) {
-        println!("new Print");
+        eprintln!("new Print");
     }
 
     fn to_string(&self) {
-        println!("to_string Print");
+        eprintln!("to_string Print");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        //println!("evaluate Print");
+        eprintln!("evaluate Print");
         if self.value.is_none() {
             panic!("Print value null");
         }
@@ -74,17 +79,36 @@ impl AST for PrintStatement {
     }
 }
 
-impl AST for EOFStatement {
+impl AST for MoveStatement {
     fn new(&self) {
-        println!("new EOF");
+        eprintln!("new Print");
     }
 
     fn to_string(&self) {
-        println!("to_string EOF");
+        eprintln!("to_string Print");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        //println!("evaluate EOF");
+        println!("{}", self.state);
+        return None;
+    }
+
+    fn get_ast_version(&self) -> ASTVersion {
+        return ASTVersion::STATEMENT;
+    }
+}
+
+impl AST for EOFStatement {
+    fn new(&self) {
+        eprintln!("new EOF");
+    }
+
+    fn to_string(&self) {
+        eprintln!("to_string EOF");
+    }
+
+    fn evaluate(&self) -> Option<ASTTypes> {
+        eprintln!("evaluate EOF");
         return None;
     }
 
@@ -95,15 +119,15 @@ impl AST for EOFStatement {
 
 impl AST for VarStatement {
     fn new(&self) {
-        println!("new VAR");
+        eprintln!("new VAR");
     }
 
     fn to_string(&self) {
-        println!("to_string VAR");
+        eprintln!("to_string VAR");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        println!("evaluate VAR");
+        eprintln!("evaluate VAR");
         return None;
     }
 
@@ -114,15 +138,15 @@ impl AST for VarStatement {
 
 impl AST for AssignStatement {
     fn new(&self) {
-        println!("new ASSIGN");
+        eprintln!("new ASSIGN");
     }
 
     fn to_string(&self) {
-        println!("to_string ASSIGN");
+        eprintln!("to_string ASSIGN");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        println!("evaluate ASSIGN");
+        eprintln!("evaluate ASSIGN");
         return None;
     }
 
@@ -176,15 +200,15 @@ impl ASTTypes {
 
 impl AST for LiteralExpression {
     fn new(&self) {
-        println!("new VAR");
+        eprintln!("new VAR");
     }
 
     fn to_string(&self) {
-        println!("to_string VAR");
+        eprintln!("to_string VAR");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        println!("evaluate VAR");
+        eprintln!("evaluate VAR");
         let out = self.type_casting();
 
         if out == None {
@@ -226,15 +250,15 @@ impl LiteralExpression {
 
 impl AST for IdentifierExpression {
     fn new(&self) {
-        println!("new VAR");
+        eprintln!("new VAR");
     }
 
     fn to_string(&self) {
-        println!("to_string VAR");
+        eprintln!("to_string VAR");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        println!("evaluate VAR");
+        eprintln!("evaluate VAR");
         return None;
     }
 
@@ -245,15 +269,15 @@ impl AST for IdentifierExpression {
 
 impl AST for PrefixExpression {
     fn new(&self) {
-        println!("new VAR");
+        eprintln!("new VAR");
     }
 
     fn to_string(&self) {
-        println!("to_string VAR");
+        eprintln!("to_string VAR");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        println!("evaluate VAR");
+        eprintln!("evaluate VAR");
         return None;
     }
 
@@ -264,15 +288,15 @@ impl AST for PrefixExpression {
 
 impl AST for InfixExpression {
     fn new(&self) {
-        println!("new VAR");
+        eprintln!("new VAR");
     }
 
     fn to_string(&self) {
-        println!("to_string VAR");
+        eprintln!("to_string VAR");
     }
 
     fn evaluate(&self) -> Option<ASTTypes> {
-        println!("evaluate VAR");
+        eprintln!("evaluate VAR");
         return None;
     }
 

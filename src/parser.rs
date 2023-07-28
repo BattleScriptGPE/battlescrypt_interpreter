@@ -4,8 +4,8 @@ use lazy_static::__Deref;
 
 use crate::{
     ast::{
-        EOFStatement, IdentifierExpression, InfixExpression, LiteralExpression, PrefixExpression,
-        PrintStatement, VarStatement, AST, AssignStatement,
+        AssignStatement, EOFStatement, IdentifierExpression, InfixExpression, LiteralExpression,
+        MoveStatement, PrefixExpression, PrintStatement, VarStatement, AST,
     },
     tokens::{get_precedence, Priority, Token, TokenInfo, EOF, EOF_RAW, ILLEGAL},
 };
@@ -43,16 +43,15 @@ impl Parser<'_> {
         self.update();
 
         while self.current_token.0 != EOF {
-
-            println!(
+            /*println!(
                 "Managing token -> {:?}, {:?}",
                 self.current_token, self.next_token
-            );
+            );*/
 
             let statement = self.parse_statement();
 
             if statement.is_some() {
-                println!("push");
+                eprintln!("push");
                 self.ast_list.push(statement.unwrap());
             }
         }
@@ -67,7 +66,7 @@ impl Parser<'_> {
 
         self.current_token = self.next_token.clone();
         self.next_token = self.next();
-        //println!("update -> {:?}, {:?}", self.current_token, self.next_token);
+        eprintln!("update -> {:?}, {:?}", self.current_token, self.next_token);
         /* println!(
             "curr_tok2 -> {:?} ; new_token2 -> {:?}",
             self.current_token, self.next_token
@@ -87,36 +86,40 @@ impl Parser<'_> {
             panic!("ILLEGAL TOKEN");
         }
 
-        println!("TODO parse_statements");
+        eprintln!("TODO parse_statements");
 
         let mut statement = self.parse_var_statement();
 
         if statement.is_some() {
-            println!("Detected var_statement");
+            eprintln!("Detected var_statement");
             return statement;
         }
 
         statement = self.parse_assign_statement();
 
         if statement.is_some() {
-            println!("Detected parse_assign_statement");
+            eprintln!("Detected parse_assign_statement");
             return statement;
         }
 
-        // TODO Move Statement
-
         statement = self.print_statement();
-        
 
         if statement.is_some() {
-            println!("Detected print_statement");
+            eprintln!("Detected print_statement");
+            return statement;
+        }
+
+        statement = self.move_statement();
+
+        if statement.is_some() {
+            eprintln!("Detected move_statement");
             return statement;
         }
 
         statement = self.parse_expression_statement();
 
         if statement.is_some() {
-            println!("Detected parse_expression_statement");
+            eprintln!("Detected parse_expression_statement");
             return statement;
         }
 
@@ -141,14 +144,16 @@ impl Parser<'_> {
             let value = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::SEMI);
             self.update();
-            return Some(Arc::new(AssignStatement {variable: variable, value: value}));
+            return Some(Arc::new(AssignStatement {
+                variable: variable,
+                value: value,
+            }));
         }
         return None;
     }
 
     fn parse_var_statement(&mut self) -> Option<Arc<dyn AST>> {
         if self.is_valid_token(self.current_token.clone(), Token::VAR) {
-
             self.is_next(Token::ID);
 
             let variable = self.current_token.1.clone();
@@ -158,14 +163,17 @@ impl Parser<'_> {
             let value = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::SEMI);
             self.update();
-            return Some(Arc::new(VarStatement {variable: variable, value: value}));
+            return Some(Arc::new(VarStatement {
+                variable: variable,
+                value: value,
+            }));
         }
         return None;
     }
 
     fn print_statement(&mut self) -> Option<Arc<dyn AST>> {
         if self.is_valid_token(self.current_token.clone(), Token::PRINT) {
-            println!("JUL1");
+            eprintln!("JUL1");
             // TODO TRAITEMENT
             let state = self.current_token.1.clone();
             self.is_next(Token::LPAREN);
@@ -175,7 +183,10 @@ impl Parser<'_> {
             self.is_next(Token::SEMI);
             self.update();
 
-            return Some(Arc::new(PrintStatement {state: state, value: value}));
+            return Some(Arc::new(PrintStatement {
+                state: state,
+                value: value,
+            }));
         }
         return None;
     }
@@ -221,14 +232,19 @@ impl Parser<'_> {
             Token::STRING.get_name(),
         ];
         if data_types.contains(&&*self.current_token.0) {
-            return Some(Arc::new(LiteralExpression {type_literal: self.current_token.0.clone(), value: self.current_token.1.clone()}));
+            return Some(Arc::new(LiteralExpression {
+                type_literal: self.current_token.0.clone(),
+                value: self.current_token.1.clone(),
+            }));
         }
         return None;
     }
 
     fn parse_identifier(&self) -> Option<Arc<dyn AST>> {
         if self.is_valid_token(self.current_token.clone(), Token::ID) {
-            return Some(Arc::new(IdentifierExpression {value: self.current_token.1.clone()}));
+            return Some(Arc::new(IdentifierExpression {
+                value: self.current_token.1.clone(),
+            }));
         }
         return None;
     }
@@ -244,7 +260,10 @@ impl Parser<'_> {
             let right = self.parse_expression(Priority::HIGHER);
             // TODO ASSIGNATION PARAMS
 
-            return Some(Arc::new(PrefixExpression {variable: operator, value: right}));
+            return Some(Arc::new(PrefixExpression {
+                variable: operator,
+                value: right,
+            }));
         } else if self.is_valid_token(self.current_token.clone(), Token::LPAREN) {
             self.update();
             let expression = self.parse_expression(Priority::LOWEST);
@@ -259,7 +278,7 @@ impl Parser<'_> {
             self.update();
             let expression = self.parse_expression(Priority::LOWEST);
             self.is_next(Token::RPAREN);
-            return  expression;
+            return expression;
         }
         return None;
     }
@@ -292,7 +311,11 @@ impl Parser<'_> {
             self.update();
             let right = self.parse_expression(precedence);
             // TODO PARAM BINDING AST
-            return Some(Arc::new(InfixExpression {left: left, right: right, operator: operator}));
+            return Some(Arc::new(InfixExpression {
+                left: left,
+                right: right,
+                operator: operator,
+            }));
         }
         return None;
     }
@@ -312,5 +335,22 @@ impl Parser<'_> {
             );
         }
         self.update();
+    }
+
+    fn move_statement(&mut self) -> Option<Arc<dyn AST>> {
+        if self.is_valid_token(self.current_token.clone(), Token::MOVE_UP)
+            || self.is_valid_token(self.current_token.clone(), Token::MOVE_DOWN)
+            || self.is_valid_token(self.current_token.clone(), Token::MOVE_LEFT)
+            || self.is_valid_token(self.current_token.clone(), Token::MOVE_RIGHT)
+        {
+            let state = self.current_token.1.clone();
+            self.is_next(Token::LPAREN);
+            self.is_next(Token::RPAREN);
+            self.is_next(Token::SEMI);
+            self.update();
+
+            return Some(Arc::new(MoveStatement { state: state }));
+        }
+        return None;
     }
 }

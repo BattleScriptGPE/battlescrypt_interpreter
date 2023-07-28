@@ -71,6 +71,12 @@ pub enum Token {
     WHITESPACE,
     COMMENT,
 
+    // Reserved Unity Functions
+    MOVE_UP,
+    MOVE_DOWN,
+    MOVE_LEFT,
+    MOVE_RIGHT,
+
     ID,
 }
 
@@ -123,6 +129,12 @@ impl Token {
             Token::PRINT => r#"print"#,
             Token::WHITESPACE => r#"(\t|\n|\s|\r)+"#,
             Token::COMMENT => r#"#.*"#,
+
+            Token::MOVE_UP => r#"MoveUp"#,
+            Token::MOVE_DOWN => r#"MoveDown"#,
+            Token::MOVE_LEFT => r#"MoveLeft"#,
+            Token::MOVE_RIGHT => r#"MoveRight"#,
+
             Token::ID => r#"[_a-zA-Z][_a-zA-Z0-9]*"#,
         }
     }
@@ -176,6 +188,11 @@ impl Token {
             Token::WHITESPACE => "WHITESPACE",
             Token::COMMENT => "COMMENT",
 
+            Token::MOVE_UP => "MOVE_UP",
+            Token::MOVE_DOWN => "MOVE_DOWN",
+            Token::MOVE_LEFT => "MOVE_LEFT",
+            Token::MOVE_RIGHT => "MOVE_RIGHT",
+
             Token::ID => "ID",
         }
     }
@@ -184,7 +201,7 @@ impl Token {
 }
 
 // TODO !!! Increments Token number as we add values !!!
-pub static TOKEN_ITERATOR: [Token; 40] = [
+pub static TOKEN_ITERATOR: [Token; 44] = [
     Token::PLUS,
     Token::MINUS,
     Token::MUL,
@@ -224,6 +241,10 @@ pub static TOKEN_ITERATOR: [Token; 40] = [
     Token::PRINT,
     Token::WHITESPACE,
     Token::COMMENT,
+    Token::MOVE_UP,
+    Token::MOVE_DOWN,
+    Token::MOVE_LEFT,
+    Token::MOVE_RIGHT,
     Token::ID,
 ];
 
